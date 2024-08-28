@@ -17,7 +17,7 @@
   #include "Kalman.h"
   
 // Constantes
-  const int DELAY=1500;  // Tiempo de muestreo.
+  const int DELAY = 1500;  // Tiempo de muestreo.
   
 // Pantalla LCD 1.8" TFT (128x160)  
   const int TFT_CS = 10;
@@ -30,28 +30,28 @@
   int Valor_PIR;                             
         
 // Sensor DHT
-  const int Pin_DHT=2;                            
+  const int Pin_DHT = 2;                            
   DHT dht(Pin_DHT, DHT22); // Objeto tipo dht modelo DHT22.                       
   float Humedad;
   float Temperatura_DHT;
 
 // Sensor Termistor 10k
-  const int Pin_TERM=0;
-  const int Resistencia_termistor=9740; // Resistencia del divisor de tension (Medida con el polimetro).
+  const int Pin_TERM = 0;
+  const int Resistencia_termistor = 9740; // Resistencia del divisor de tension (Medida con el polimetro).
   float Temperatura; 
   uint32_t Resistencia;                        
   
 // Sensor Ultrasonido HC-SR04
   int Distancia;
-  const int TRIGGER_PIN=5;                          
-  const int ECHO_PIN=4;                          
-  const int MAX_DISTANCE=450;
+  const int TRIGGER_PIN = 5;                          
+  const int ECHO_PIN = 4;                          
+  const int MAX_DISTANCE = 450;
   NewPing sonar(TRIGGER_PIN, ECHO_PIN, MAX_DISTANCE); // Objeto tipo sonar.   
   
 // Sensor LDR
-  const int Pin_LDR=1;                            
-  const int VIN=5;   
-  const int R=10000; 
+  const int Pin_LDR = 1;                            
+  const int VIN = 5;   
+  const int R = 10000; 
   int Val_ANALOGICO;                              
   int Val_LUMEN;                                    
  
