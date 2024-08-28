@@ -1,6 +1,6 @@
 /* FILTRO KALMAN */
 
-// Si no esta definidala clase Kalman.h, la creamos:
+// Si no esta definida la clase Kalman.h, la creamos:
 #ifndef _Kalman_h
 #define _Kalman_h
 
