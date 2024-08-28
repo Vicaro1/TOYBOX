@@ -1,10 +1,11 @@
-/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  ~Proyecto Electrónica Analógica (TOYBOX)~
-  ~Hecho por:   Víctor Caro Pastor        ~
-  ~Versión:     18.0                       ~
-  ~Fecha:       26/11/2021                ~
-  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-  
+/** Encabezado:
+ * @file main.ino
+ * @brief Proyecto Electrónica Analógica (TOYBOX)
+ * @author [Victor Caro Pastor](https://github.com/Vicaro1)
+ * @version  V8.3
+ * @date  26-11-2021
+*/
+
 /* Librerias */  
   #include <Adafruit_GFX.h>    
   #include <Adafruit_ST7735.h> 
@@ -14,7 +15,6 @@
   #include <NewPing.h> 
   #include <Wire.h>
   #include "Kalman.h"
-  
   
 // Constantes
   const int DELAY=1500;  // Tiempo de muestreo.
@@ -73,8 +73,62 @@ double kalAngleX, kalAngleY; // Ángulo calculado usando el filtro Kalman.
 uint32_t timer;
 uint8_t i2cData[14]; // Buffer para los datos I2C.
 
-/*======================================================================================*/
 
+/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ FUNCIONES  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+// Esta función obtiene la resistencia del termistor resolviendo el divisor resistivo.
+int32_t Obtener_Resistencia_Termistor(uint16_t adcval){
+    return (Resistencia_termistor * ((1023.0 / adcval) - 1));
+  }
+
+// Esta función obtiene la temperatura en grados centígrados a partir de la resistencia actual del termistor.
+float Obtener_Temperatura_Termistor(int32_t resistance){
+  float temp; 
+    temp = log(resistance);
+    temp = 1 / (0.001129148 + (0.000234125 * temp) + (0.0000000876741 * temp * temp * temp));
+    return temp - 273.15;   
+  }
+
+// Esta función convierte el valor analógico a un valor en lumens.
+int Conversion_Analogica_Lumen(int raw){ 
+    float Vout = float(raw) * (VIN / float(1023));   
+    float RLDR = (R * (VIN - Vout))/Vout;      
+    int phys=500/(RLDR/1000);                     
+    return phys;
+  } 
+
+// Esta función presenta los datos simples por la pantalla TFT.
+void ImprimirSIMPLES() {
+  tft.setTextWrap(false);   // El texto que no entre pasa a la siguiente línea.
+  tft.setRotation(0);       // Establece la pantalla en vertical.
+  tft.fillScreen(ST77XX_BLACK);
+  tft.setCursor(0, 0);tft.setTextSize(1); tft.setTextColor(ST77XX_CYAN);
+  tft.println("  MEDICIONES TOYBOX"); tft.setTextColor(ST77XX_WHITE); tft.println();
+  tft.print("Humedad:     "); tft.setTextColor(ST77XX_BLUE); tft.print(Humedad); tft.setTextColor(ST77XX_WHITE); tft.println(" %");
+  tft.print("Temp DHT:    "); tft.setTextColor(ST77XX_RED); tft.print(Temperatura_DHT); tft.setTextColor(ST77XX_WHITE); tft.println(" *C");
+  tft.print("Temp TERM:   "); tft.setTextColor(ST77XX_RED); tft.print(Temperatura); tft.setTextColor(ST77XX_WHITE); tft.println(" *C");
+  tft.print("Distancia:   "); tft.setTextColor(ST77XX_MAGENTA); tft.print(Distancia); tft.setTextColor(ST77XX_WHITE); tft.setCursor(113,50); tft.println("cm");
+  tft.print("Iluminacion: "); tft.setTextColor(ST77XX_YELLOW); tft.print(Val_LUMEN); tft.setTextColor(ST77XX_WHITE); tft.setCursor(113,58); tft.println("lm");
+  tft.print("Sensor PIR:  "); tft.println(Valor_PIR);
+}
+
+// Esta función presenta los datos del giroscopio por la pantalla TFT.
+void ImprimirGYRO() {
+  tft.println();
+  tft.println("             Angulo X");
+  tft.print("Giroscopio:  "); tft.setTextColor(ST77XX_ORANGE); tft.println(gyroXangle); tft.setTextColor(ST77XX_WHITE);
+  tft.print("Compl:       "); tft.setTextColor(ST77XX_ORANGE); tft.println(compAngleX); tft.setTextColor(ST77XX_WHITE);
+  tft.print("Kaplan:      "); tft.setTextColor(ST77XX_ORANGE); tft.println(kalAngleX); tft.setTextColor(ST77XX_WHITE);
+  tft.println("             Angulo Y");
+  tft.print("Giroscopio:  "); tft.setTextColor(ST77XX_ORANGE); tft.println(gyroYangle); tft.setTextColor(ST77XX_WHITE);
+  tft.print("Compl:       "); tft.setTextColor(ST77XX_ORANGE); tft.println(compAngleY); tft.setTextColor(ST77XX_WHITE);
+  tft.print("Kaplan:      "); tft.setTextColor(ST77XX_ORANGE); tft.println(kalAngleY); tft.setTextColor(ST77XX_WHITE);
+}
+
+/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ SETUP ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 void setup() 
 {
   Serial.begin(115200);
@@ -130,8 +184,9 @@ void setup()
   timer = micros();
 }
 
-/*======================================================================================*/
-
+/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ LOOP ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 void loop() 
 { 
   /* Sensor Giroscopio */
@@ -269,51 +324,4 @@ void loop()
   ImprimirSIMPLES();
   ImprimirGYRO();
   delay(DELAY);
-}
-
-
-/* FUNCIONES */
-// Esta función obtiene la resistencia del termistor resolviendo el divisor resistivo.
-int32_t Obtener_Resistencia_Termistor(uint16_t adcval){
-    return (Resistencia_termistor * ((1023.0 / adcval) - 1));
-  }
-// Esta función obtiene la temperatura en grados centígrados a partir de la resistencia actual del termistor.
-float Obtener_Temperatura_Termistor(int32_t resistance){
-  float temp; 
-    temp = log(resistance);
-    temp = 1 / (0.001129148 + (0.000234125 * temp) + (0.0000000876741 * temp * temp * temp));
-    return temp - 273.15;   
-  }
-// Esta función convierte el valor analógico a un valor en lumens.
-int Conversion_Analogica_Lumen(int raw){ 
-    float Vout = float(raw) * (VIN / float(1023));   
-    float RLDR = (R * (VIN - Vout))/Vout;      
-    int phys=500/(RLDR/1000);                     
-    return phys;
-  } 
-// Esta función presenta los datos simples por la pantalla TFT.
-void ImprimirSIMPLES() {
-  tft.setTextWrap(false);   // El texto que no entre pasa a la siguiente línea.
-  tft.setRotation(0);       // Establece la pantalla en vertical.
-  tft.fillScreen(ST77XX_BLACK);
-  tft.setCursor(0, 0);tft.setTextSize(1); tft.setTextColor(ST77XX_CYAN);
-  tft.println("  MEDICIONES TOYBOX"); tft.setTextColor(ST77XX_WHITE); tft.println();
-  tft.print("Humedad:     "); tft.setTextColor(ST77XX_BLUE); tft.print(Humedad); tft.setTextColor(ST77XX_WHITE); tft.println(" %");
-  tft.print("Temp DHT:    "); tft.setTextColor(ST77XX_RED); tft.print(Temperatura_DHT); tft.setTextColor(ST77XX_WHITE); tft.println(" *C");
-  tft.print("Temp TERM:   "); tft.setTextColor(ST77XX_RED); tft.print(Temperatura); tft.setTextColor(ST77XX_WHITE); tft.println(" *C");
-  tft.print("Distancia:   "); tft.setTextColor(ST77XX_MAGENTA); tft.print(Distancia); tft.setTextColor(ST77XX_WHITE); tft.setCursor(113,50); tft.println("cm");
-  tft.print("Iluminacion: "); tft.setTextColor(ST77XX_YELLOW); tft.print(Val_LUMEN); tft.setTextColor(ST77XX_WHITE); tft.setCursor(113,58); tft.println("lm");
-  tft.print("Sensor PIR:  "); tft.println(Valor_PIR);
-}
-// Esta función presenta los datos del giroscopio por la pantalla TFT.
-void ImprimirGYRO() {
-  tft.println();
-  tft.println("             Angulo X");
-  tft.print("Giroscopio:  "); tft.setTextColor(ST77XX_ORANGE); tft.println(gyroXangle); tft.setTextColor(ST77XX_WHITE);
-  tft.print("Compl:       "); tft.setTextColor(ST77XX_ORANGE); tft.println(compAngleX); tft.setTextColor(ST77XX_WHITE);
-  tft.print("Kaplan:      "); tft.setTextColor(ST77XX_ORANGE); tft.println(kalAngleX); tft.setTextColor(ST77XX_WHITE);
-  tft.println("             Angulo Y");
-  tft.print("Giroscopio:  "); tft.setTextColor(ST77XX_ORANGE); tft.println(gyroYangle); tft.setTextColor(ST77XX_WHITE);
-  tft.print("Compl:       "); tft.setTextColor(ST77XX_ORANGE); tft.println(compAngleY); tft.setTextColor(ST77XX_WHITE);
-  tft.print("Kaplan:      "); tft.setTextColor(ST77XX_ORANGE); tft.println(kalAngleY); tft.setTextColor(ST77XX_WHITE);
 }
